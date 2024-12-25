@@ -1,5 +1,5 @@
 import { transportClient, sender } from "./mailtrap.config.js";
-import { VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplates.js";
+import { VERIFICATION_EMAIL_TEMPLATE, WELCOME_EMAIL_TEMPLATE } from "./emailTemplates.js";
 
 export const sendVerificationEmail = async (email, verificationToken) => {
     const recipient = [email]
@@ -20,6 +20,26 @@ export const sendVerificationEmail = async (email, verificationToken) => {
         throw new Error("Error sending verification email", error);
     }
 };
+
+export const sendWelcomeEmail = async (email) => {
+    const recipient = [email];
+
+    try {
+        const response = transportClient.sendMail({
+            from: sender,
+            to: recipient,
+            subject: "Welcome to Bruin Planner!",
+            html: WELCOME_EMAIL_TEMPLATE,          
+        });
+
+        console.log("Welcome Email sent successfully", response);
+
+    } catch (error) {
+        console.error("Error sending welcome email", error);
+        throw new Error("Error sending welcome email", error);
+    }
+};
+
 
 // const info = await transporter.sendMail({
 //     from: '"Maddison Foo Koch 👻" <maddison53@ethereal.email>', // sender address

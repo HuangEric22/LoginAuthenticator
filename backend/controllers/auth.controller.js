@@ -1,6 +1,6 @@
 import { User } from "../models/user.model.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail } from "../mailtrap/emails.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
 import bcrypt from "bcryptjs";
 
 export const signup = async (req, res) => {
@@ -19,7 +19,8 @@ export const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 7); //hashes the password to become unreadble to the user
         const verificationToken = Math.floor(100000 + Math.random() * 900000); //generates a random 6 digit number
 
-        const newUser = new User({email, 
+        const newUser = new User({
+            email, 
             password: hashedPassword, 
             name, 
             verificationToken: verificationToken,
@@ -44,7 +45,7 @@ export const signup = async (req, res) => {
     } catch (error) {
         res.status(400).json({success: false, message: error.message});
     }
-}
+};
 
 export const verifyEmail = async (req, res) => {
     const {code} = req.body;
@@ -65,6 +66,15 @@ export const verifyEmail = async (req, res) => {
 
         await sendWelcomeEmail(newUser.email, newUser.name);
 
+        res.status(200).json({
+            success: true, 
+            message: "Welcome email sent successfully",
+            user: {
+                ...newUser._doc,
+                password: undefined
+            }
+        });
+                
     } catch (error) {
         res.status(400).json({success: false, message: error.message});
     }

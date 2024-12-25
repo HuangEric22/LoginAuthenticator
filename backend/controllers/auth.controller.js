@@ -1,7 +1,11 @@
 import { User } from "../models/user.model.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from "../mailtrap/emails.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const signup = async (req, res) => {
     const {email, password, name} = req.body;    
@@ -92,6 +96,8 @@ export const login = async (req, res) => {
             return res.status(400).json({success: false, message: "Invalid password"});
         }
 
+        generateTokenAndSetCookie(res, user._id);
+
         user.lastLogin = new Date();
         await user.save();
 
@@ -113,4 +119,30 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "User has logged out successfully"});
+}
+
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(400).json({success: false, message: "User not found"});
+        }
+
+        // generate a reset token
+        const resetToken = crypto.randomBytes(69).toString("hex");
+        const resetTokenExpiresAt = Date.now() + 2 * 60 * 60 * 1000; // 2 hours
+
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiresAt = resetTokenExpiresAt;
+        await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+
+        res.status(200).json({success: true, message: "Password reset link has been sent to your email"});
+    }
+    catch (error) {
+        console.log("Error resetting password", error);
+        res.status(400).json({success: false, message: error.message});
+    }
 }

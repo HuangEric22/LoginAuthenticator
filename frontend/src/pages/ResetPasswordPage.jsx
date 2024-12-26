@@ -5,11 +5,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import Input from "../components/Input";
 import toast from "react-hot-toast";
+import { getStrength } from "../components/PasswordChecker";
+import PasswordChecker from "../components/PasswordChecker";
 
 const ResetPasswordPage = () => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [match, setMatch] = useState("");
+    const [status, setStatus] = useState("");
 
     const { resetPassword, isLoading, error, message } = useAuthStore();
     const {token} = useParams();
@@ -17,13 +19,15 @@ const ResetPasswordPage = () => {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if (getStrength(password) < 4) {
+            setStatus("Please choose a stronger password.");
+            return;
+        }
         if (password != confirmPassword) {
-          setMatch("Passwords do not match.");
+          setStatus("Passwords do not match.");
           return;
         }
-        setMatch("");
-        
+        setStatus("");
         try {
             await resetPassword(token, password);
 
@@ -68,10 +72,13 @@ const ResetPasswordPage = () => {
 						onChange={(e) => setConfirmPassword(e.target.value)}
 						required
 					/>
-                    {match && <p className='text-red-500 text-sm mb-4'>{match}</p>}				
+                    {status && <p className='text-red-500 text-sm mb-4'>{status}</p>}				
                     {error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
                     {message && <p className='text-green-500 text-sm mb-4'>{message}</p>}
-					<motion.button
+                    
+                    <PasswordChecker password={password} />					
+                    
+                    <motion.button
 						whileHover={{ scale: 1.02 }}
 						whileTap={{ scale: 0.98 }}
 						className='mt-5 w-full py-3 px-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white
@@ -82,6 +89,7 @@ const ResetPasswordPage = () => {
 					>
 						{isLoading ? "Resetting..." : "Set New Password"}
 					</motion.button>
+                    
 				</form>
 			</div>
 		</motion.div>

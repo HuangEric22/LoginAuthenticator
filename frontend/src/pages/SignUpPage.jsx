@@ -4,23 +4,36 @@ import { Mail, User, Lock, Loader } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PasswordChecker from '../components/PasswordChecker';
+import { getStrength } from '../components/PasswordChecker';
 import { useAuthStore } from '../store/authStore';
+import toast from "react-hot-toast";
 
 const SignUpPage = () => {
     
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const {signup, error, isLoading } = useAuthStore();
     const navigate = useNavigate();
     
     const handleSignUp = async (e) => {
         e.preventDefault();
+        if (getStrength(password) < 4) {
+            setErrorMessage("Please choose a stronger password.");
+            return;
+        }
+        setErrorMessage(''); 
         try {
             await signup(email, password, name);
-            navigate("/verify-email");
-        } catch (error) {
-            console.log(error);
+            toast.success("Account created successfully, redirecting to email verification page...");
+
+            setTimeout(() => {
+                navigate("/verify-email");
+            }, 2000);            
+        } catch (caughtError) {
+            toast.error(error?.message || "Error creating account");
+            // console.log(caughtError);
         }
     }
 
@@ -59,7 +72,8 @@ const SignUpPage = () => {
             value={password} 
             onChange={(e) => setPassword(e.target.value)}
             />
-            {error && <p className='text-red-500 font-semibold mt-2'>{error}</p>}
+            {errorMessage && <p className='text-red-500 font-semibold mt-2'>{errorMessage}</p> }
+            {error && !errorMessage && <p className='text-red-500 font-semibold mt-2'>{error}</p>}
             <PasswordChecker password={password} />
 
             <motion.button 

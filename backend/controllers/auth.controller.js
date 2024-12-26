@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 export const signup = async (req, res) => {
     const {email, password, name} = req.body;    
@@ -89,7 +90,7 @@ export const login = async (req, res) => {
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({success: false, message: "Invalid password."});
+            return res.status(400).json({success: false, message: "Incorrect password."});
         }
 
         generateTokenAndSetCookie(res, user._id);

@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
 
 const EmailVerificationPage = () => {
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef([]);
     const navigate = useNavigate();
-    const isLoading = false;
-    
+    const { error, isLoading, verifyEmail } = useAuthStore();
+
     const isNumeric = (number) => {
         // if is a number returns true        
         if (+number === +number) {
@@ -73,10 +75,17 @@ const EmailVerificationPage = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const verfCode = code.join("");
-        // console.log(`Verification code submitted: ${verfCode}`);
+        console.log(`Verification code submitted: ${verfCode}`);
+        try {
+            await verifyEmail(verfCode);
+            navigate("/");
+            toast.success("Email verified successfully!");
+        } catch (error) {
+            console.log(error);
+        }
     };
     // automatically submits form when all numbers are filled
     useEffect(() => {
@@ -114,13 +123,14 @@ const EmailVerificationPage = () => {
                             />
                         ))}                    
                     </div>
+                    {error && <p className='text-red-500 font-semibold text-center'>{error}</p>}
                     <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             type='submit'
                             disabled={isLoading || code.some((digit) => !digit)}
                             className='w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:from-yellow-600 hover:to-yellow-700 
-                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:opacity-50'
+                            focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 disabled:opacity-50'
                         >
                             {isLoading ? "Verifying..." : "Verify Email"}
                     </motion.button>            

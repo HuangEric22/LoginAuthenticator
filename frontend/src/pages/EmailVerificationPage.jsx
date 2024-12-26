@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -8,27 +8,54 @@ const EmailVerificationPage = () => {
     const navigate = useNavigate();
     const isLoading = false;
     
+    const isNumeric = (number) => {
+        // if is a number returns true        
+        if (+number === +number) {
+            return true;
+        }
+        return false;
+      }
+
+    const handlePaste = (e) => { 
+        e.preventDefault();
+
+        // Access clipboard data from the paste event
+        const pastedData = e.clipboardData.getData('text');
+        // console.log('Pasted content:', pastedData);
+        
+        // Create a copy of the current state
+        const updatedCode = [...code];
+        const length = pastedData.length > 6 ? 6 : pastedData.length;
+        
+        // Check if there are any non-numeric characters in the pasted data
+        for (let i = 0; i < length; i++) {
+            if (!isNumeric(pastedData[i])) {
+                return;
+            }
+        }
+        // Insert the pasted characters starting at the current index
+        for (let i = 0; i < length; i++) {
+            updatedCode[i] = pastedData[i] || "";
+        }
+    
+        setCode(updatedCode); // Update the state
+        const lastIndex = updatedCode.findLastIndex((digit) => digit !== "");
+        const focusIndex = lastIndex < 5 ? lastIndex + 1 : 5;
+        inputRefs.current[focusIndex]?.focus(); 
+    }
+
     const handleChange = (index, value) => {
+        // allow only numbers for input
+        if (!isNumeric(value.slice(0, 1))) {
+            return;
+        }
         const newCode = [...code];
-
-        // Handles copy and paste
-
-        if (value.length > 1) {
-            const pastedCode = value.slice(0, 6).split("");
-            for (let i = 0; i < 6; i++) {
-                newCode[i] = pastedCode[i] || "";
-            }
+        if (index <= 5) {   
+            newCode[index] = value.slice(0, 1);
             setCode(newCode);
-            // Focus on the last non-empty input or first empty element
-            const lastIndex = newCode.findLastIndex((digit) => digit !== "");
-            const focusIndex = lastIndex < 5 ? lastIndex + 1 : 5;
-            inputRefs.current[focusIndex].focus();
-        } else {
-            newCode[index] = value;
-            setCode(newCode);
-            if (value && index < 5) {
-                inputRefs.current[index + 1].focus();
-            }
+        }
+        if (value && index < 5) {
+            inputRefs.current[ index + 1]?.focus();
         }
     };
     
@@ -36,7 +63,27 @@ const EmailVerificationPage = () => {
         if (e.key === "Backspace" && !code[index] && index > 0) {
             inputRefs.current[index - 1].focus();
         }
+        if ((e.key === "ArrowLeft" || e.key === "ArrowDown") && index > 0) {
+            // sets the caret to the right of a character when going backwards
+            e.preventDefault();
+            inputRefs.current[index - 1].focus();
+        }
+        if ((e.key === "ArrowRight" || e.key === "ArrowUp") && index < 5) {
+            inputRefs.current[index + 1].focus();
+        }
     };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const verfCode = code.join("");
+        // console.log(`Verification code submitted: ${verfCode}`);
+    };
+    // automatically submits form when all numbers are filled
+    useEffect(() => {
+        if (code.every(digit => digit !== "")) {
+            handleSubmit(new Event('submit'));
+        }
+    }, [code]);
 
     return (
 		<div className='max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden'>
@@ -51,7 +98,7 @@ const EmailVerificationPage = () => {
                 </h2>
                 <p className='text-center text-gray-300 mb-6'>Enter the 6-digit code sent to your email address.</p>
             
-                <form className='space-y-6'>
+                <form onSubmit={handleSubmit} className='space-y-6'>
                     <div className='flex justify-between'>
                         {code.map((digit, index) => (
                             <input
@@ -61,6 +108,7 @@ const EmailVerificationPage = () => {
                                 maxLength='6'
                                 value={digit}
                                 onChange={(e) => handleChange(index, e.target.value)}
+                                onPaste={(e) => handlePaste(e)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
                                 className='w-12 h-12 text-center text-2xl font-bold bg-gray-700 text-white border-2 border-gray-600 rounded-lg focus:border-yellow-500 focus:outline-none'
                             />

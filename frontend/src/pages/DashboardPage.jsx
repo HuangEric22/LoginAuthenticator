@@ -14,7 +14,7 @@ const DashboardPage = () => {
   };
 
   return (
-    // <Layout>
+    <Layout>
 		<motion.div
 		initial={{ opacity: 0, scale: 0.9 }}
 				animate={{ opacity: 1, scale: 1 }}
@@ -80,7 +80,7 @@ const DashboardPage = () => {
 				</motion.div>
 
 		</motion.div>
-	// </Layout>	
+	</Layout>	
   )
 }
 

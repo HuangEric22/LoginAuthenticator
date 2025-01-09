@@ -8,6 +8,8 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import CourseCalendarPage from "./pages/CourseCalendarPage";
+import Header from "./components/header/Header";
 
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from "./store/authStore";
@@ -69,36 +71,47 @@ function App() {
             <DashboardPage />
           </ProtectedRoute>
           } />
+        
         <Route path='/signup' 
         element={
           <RedirectAuthenticatedUser>
               <SignUpPage />
           </RedirectAuthenticatedUser>
         } />
+        
         <Route path='/login' 
         element={
           <RedirectAuthenticatedUser>
             <LoginPage />
           </RedirectAuthenticatedUser>
         } />
+        
         <Route path='/verify-email'
          element={
           <ProtectVerification>
             <EmailVerificationPage />
           </ProtectVerification>
          } />
+        
         <Route path='/forgot-password'
          element={
           <RedirectAuthenticatedUser>
             <ForgotPasswordPage />
           </RedirectAuthenticatedUser>
          } />
+        
         <Route path='/reset-password/:token'
          element={
           <RedirectAuthenticatedUser>
             <ResetPasswordPage />
           </RedirectAuthenticatedUser>
          } />
+        
+        <Route path='/home'
+          element = {
+            <CourseCalendarPage />
+          }
+        />
         <Route path='*' element={<Navigate to='/' replace />}/>
       </Routes>
       <Toaster />

@@ -14,6 +14,7 @@ import Header from "./components/header/Header";
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
+import CalendarPage from "./pages/CalendarPage";
 
 // protect routes that require autehntication
 const ProtectedRoute = ({children}) => {
@@ -110,6 +111,12 @@ function App() {
         <Route path='/home'
           element = {
             <CourseCalendarPage />
+          }
+        />
+        
+        <Route path='/calendar' 
+          element = {
+            <CalendarPage />
           }
         />
         <Route path='*' element={<Navigate to='/' replace />}/>

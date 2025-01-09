@@ -1,8 +1,6 @@
 import dayjs from 'dayjs'
 
-import React from 'react'
-
-const getMonth = (month = dayjs().month()) => {
+export const getMonth = (month = dayjs().month()) => {
   
     const year = dayjs().year();
     const firstDayOfMonth = dayjs(new Date(year, month, 1)).day();
@@ -18,4 +16,3 @@ const getMonth = (month = dayjs().month()) => {
     return daysMatrix;
 }
 
-export default getMonth
